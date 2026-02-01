@@ -238,6 +238,8 @@
         let currentUser = null;
         let db = null;
         let messagesRef = null;
+        let push = null;
+        let serverTimestamp = null;
 
         // Elements
         const elLocked = document.getElementById('locked-state');
@@ -384,8 +386,13 @@
             if (USE_FIREBASE) {
                 try {
                     // Dynamic Import for Firebase SDKs from CDN
+                    // Dynamic Import for Firebase SDKs from CDN
                     const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-                    const { getDatabase, ref, push, onChildAdded, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+                    const firebaseDatabase = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+
+                    const { getDatabase, ref, onChildAdded } = firebaseDatabase;
+                    push = firebaseDatabase.push;
+                    serverTimestamp = firebaseDatabase.serverTimestamp;
 
                     const app = initializeApp(firebaseConfig);
                     db = getDatabase(app);
@@ -426,22 +433,13 @@
             const text = elMessageInput.value.trim();
             if (!text || !currentUser) return;
 
-            if (USE_FIREBASE && db) {
+            if (USE_FIREBASE && db && push) {
                 // Send to Firebase
-                // Need to re-import push/serverTimestamp if I want to use them here cleanly 
-                // OR just use the global scope variables if I assigned them correctly.
-                // For simplicity in this single-file setup without bundler:
-                // We'll rely on the dynamic imports having assigned to higher scope vars or just re-import briefly?
-                // Actually, 'db' and 'messagesRef' are global. 'push' needs to be imported or we store it.
-                // Let's assume we store the methods we need.
-
-                // Simplified: If Firebase is on, we assume the user knows to fix the scope issues or we use a simpler pattern.
-                // CORRECTION: The dynamic import above makes 'push' local to 'initApp'.
-                // To fix, I will rely on a helper or just fall back to local for this demo unless keys are present.
-                // The user asked for "Assume Firebase", so I will pretend the function is available. 
-                // In a real scenario I'd hoist the functions.
-
-                alert("Please configure Firebase keys in source code to send real messages!");
+                push(messagesRef, {
+                    user: currentUser,
+                    text: text,
+                    timestamp: serverTimestamp()
+                });
 
             } else {
                 // LOCAL MODE
