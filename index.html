@@ -174,29 +174,41 @@
     <!-- CONTENT: OPEN STATE (CHAT FLOOR) -->
     <div id="chat-state" class="hidden flex-col w-full h-full max-w-4xl pt-20 pb-4 z-10 px-2 md:px-0">
 
-        <!-- HEADER INFO -->
-        <div class="flex justify-between items-end mb-2 border-b border-neon pb-2 text-xs md:text-sm">
-            <span>USER: <span id="user-display" class="text-pink">GUEST</span></span>
-            <span class="text-pink">SELF_DESTRUCT: <span id="self-destruct-timer"
-                    class="font-bold">--:--:--</span></span>
-        </div>
+        <!-- MAIN CHAT AREA -->
+        <div class="flex-1 flex flex-col border border-neon bg-black bg-opacity-80 h-full overflow-hidden w-full">
 
-        <!-- CHAT FEED -->
-        <div id="chat-feed"
-            class="flex-1 overflow-y-auto mb-4 border-l-2 border-gray-800 pl-4 space-y-2 pr-2 font-mono text-sm md:text-base">
-            <!-- Messages will be injected here -->
-            <div class="opacity-50 italic text-xs">> SYSTEM: Connected to secure frequency...</div>
-        </div>
+            <!-- CHAT HEADER -->
+            <div class="flex justify-between items-center p-2 border-b border-neon bg-offBlack text-xs md:text-sm">
+                <div>
+                    <span class="text-neon font-bold animate-pulse">THE_NOODLE_SHOP.net</span>
+                </div>
+                <div>
+                    <span class="text-gray-400">USER:</span> <span id="user-display" class="text-pink">GUEST</span>
+                </div>
+                <div class="hidden md:block">
+                    <span class="text-pink">T-MINUS: <span id="self-destruct-timer"
+                            class="font-bold">--:--:--</span></span>
+                </div>
+            </div>
 
-        <!-- INPUT AREA -->
-        <div class="flex space-x-2">
-            <input type="text" id="message-input"
-                class="flex-1 bg-offBlack border border-gray-700 p-3 text-neon focus:outline-none focus:border-neon font-mono"
-                placeholder="TRANSMIT MESSAGE..." autocomplete="off">
-            <button id="send-btn"
-                class="bg-neonGreen text-black px-6 font-bold hover:bg-white transition-colors uppercase">
-                SEND
-            </button>
+            <!-- CHAT FEED -->
+            <div id="chat-feed"
+                class="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-sm md:text-base scroll-smooth">
+                <div class="opacity-50 italic text-xs">> SYSTEM: Establishing neural link...</div>
+            </div>
+
+            <!-- INPUT AREA -->
+            <div class="p-2 bg-black border-t border-gray-800">
+                <div class="flex space-x-2">
+                    <input type="text" id="message-input"
+                        class="flex-1 bg-offBlack border border-gray-700 p-3 text-neon focus:outline-none focus:border-neon font-mono placeholder-gray-700"
+                        placeholder="TRANSMIT..." autocomplete="off">
+                    <button id="send-btn"
+                        class="bg-neonGreen text-black px-4 md:px-6 font-bold hover:bg-white transition-colors uppercase text-sm md:text-base">
+                        SEND
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -215,13 +227,7 @@
         // 1. CONFIGURATION & STATE
         // ---------------------------------------------------------
 
-        // --- FIREBASE CONFIG (PLACEHOLDER) ---
-        // To enable real backend:
-        // 1. Create a Firebase project
-        // 2. Enable Realtime Database (in Locked Mode or Test Mode)
-        // 3. Paste config below and set USE_FIREBASE = true
-
-        const USE_FIREBASE = true; // Set to true after adding keys
+        const USE_FIREBASE = true;
 
         const firebaseConfig = {
             apiKey: "[GCP_API_KEY]",
@@ -234,12 +240,28 @@
             measurementId: "G-K3V8SC2JB6"
         };
 
+        const ROOMS = {
+            'main': { name: 'MAIN_FLOOR', desc: 'General Frequency' },
+            'confession': { name: 'CONFESSION_BOOTH', desc: 'Anonymous Logs' },
+            'philosophy': { name: 'PHILOSOPHY_CNR', desc: 'Deep Thoughts' },
+            'ghosts': { name: 'GHOST_STORIES', desc: 'Urban Legends' },
+            'games': { name: 'ARCADE_ROOM', desc: 'Simulation Deck' }
+        };
         // --- GLOBAL VARIABLES ---
         let currentUser = null;
         let db = null;
         let messagesRef = null;
         let push = null;
         let serverTimestamp = null;
+        let onChildAdded = null;
+        let off = null;
+
+        // Idle Kick Config
+        let lastActive = Date.now();
+        const IDLE_TIMEOUT = 60 * 1000; // 60 seconds
+
+        // Local State
+        let localMessages = [];
 
         // Elements
         const elLocked = document.getElementById('locked-state');
@@ -252,7 +274,7 @@
         const elMessageInput = document.getElementById('message-input');
 
         // ---------------------------------------------------------
-        // 2. THE BOUNCER (TIME LOGIC)
+        // 2. THE BOUNCER (TIME & IDLE LOGIC)
         // ---------------------------------------------------------
 
         function checkTime() {
@@ -262,57 +284,58 @@
             const seconds = now.getSeconds();
 
             // CLUB HOURS: 23:00 (11PM) to 03:00 (3AM)
-            // Logic: 
-            // If hours >= 23, it is OPEN (hours 23).
-            // If hours < 3, it is OPEN (hours 0, 1, 2).
-            // BUT: Special case handled by 'isClubOpen'
-
-            const isClubOpen = (hours >= 23) || (hours < 3);
+            // const isClubOpen = (hours >= 23) || (hours < 3);
+            const isClubOpen = true; // DEV MODE: ALWAYS OPEN
 
             // AUTO WIPE CHECK
-            // If it is exactly 03:01:00 to 03:01:05, trigger wipe
             if (hours === 3 && minutes === 1 && seconds < 5) {
                 triggerWipe();
                 return;
             }
 
+            // IDLE CHECK (Global now since single room)
+            if (currentUser && !elChat.classList.contains('hidden')) {
+                if (Date.now() - lastActive > IDLE_TIMEOUT) {
+                    triggerKick();
+                    return;
+                }
+            }
+
             if (isClubOpen) {
-                // Determine active UI based on login state
                 if (elWipe.classList.contains('hidden')) {
                     if (!currentUser) {
                         showScreen('login');
                     } else {
-                        // Already logged in, ensure chat is visible if not wiped
-                        if (elChat.classList.contains('hidden')) showScreen('chat');
+                        if (elChat.classList.contains('hidden')) {
+                            showScreen('chat');
+                            initChat();
+                        }
                     }
                 }
 
-                // UPDATE SELF-DESTRUCT TIMER (Counts down to 03:00 AM)
-                // Determine target end time
+                // UPDATE SELF-DESTRUCT TIMER
                 let target = new Date();
                 if (hours >= 23) {
-                    // Target is tomorrow 03:00
                     target.setDate(target.getDate() + 1);
                     target.setHours(3, 0, 0, 0);
                 } else {
-                    // Target is today 03:00
                     target.setHours(3, 0, 0, 0);
                 }
-                updateTimerDisplay(elSelfDestruct, target, false);
+                updateTimerDisplay(elSelfDestruct, target);
 
             } else {
-                // CLOSED
                 showScreen('locked');
-
-                // UPDATE COUNTDOWN TIMER (Counts down to 23:00 TODAY)
-                // If it's past 3am but before 11pm, target is today 23:00
                 let target = new Date();
                 target.setHours(23, 0, 0, 0);
-                updateTimerDisplay(elCountdown, target, true);
+                updateTimerDisplay(elCountdown, target);
             }
         }
 
-        function updateTimerDisplay(element, targetDate, showHours) {
+        function trackActivity() {
+            lastActive = Date.now();
+        }
+
+        function updateTimerDisplay(element, targetDate) {
             const now = new Date();
             const diff = targetDate - now;
 
@@ -324,24 +347,11 @@
             const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-            const hh = h.toString().padStart(2, '0');
-            const mm = m.toString().padStart(2, '0');
-            const ss = s.toString().padStart(2, '0');
-
-            element.innerText = `${hh}:${mm}:${ss}`;
+            element.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
         function showScreen(screenName) {
-            // Helper to toggle visibility. 
-            // Only toggle if not already active to prevent flickering inputs or resets
-            const screens = {
-                locked: elLocked,
-                login: elLogin,
-                chat: elChat,
-                wipe: elWipe
-            };
-
+            const screens = { locked: elLocked, login: elLogin, chat: elChat, wipe: elWipe };
             for (const key in screens) {
                 if (key === screenName) {
                     screens[key].classList.remove('hidden');
@@ -356,22 +366,38 @@
         function triggerWipe() {
             showScreen('wipe');
             currentUser = null;
-            // Animation for bar is CSS. After 4 seconds, reload page.
-            setTimeout(() => {
-                window.location.reload();
-            }, 4000);
+            setTimeout(() => { window.location.reload(); }, 4000);
+        }
+
+        function triggerKick() {
+            showScreen('wipe');
+            const h1 = elWipe.querySelector('h1');
+            const p = elWipe.querySelector('p');
+            if (h1) h1.innerText = "CONNECTION TERMINATED";
+            if (p) p.innerText = "IDLE_TIMEOUT [60s]. REBOOTING...";
+            currentUser = null;
+            setTimeout(() => { window.location.reload(); }, 3000);
         }
 
         // ---------------------------------------------------------
-        // 3. CHAT LOGIC (FIREBASE + LOCAL FALLBACK)
+        // 3. UI RENDERING
+        // ---------------------------------------------------------
+
+        // renderRoomList function removed as it's no longer needed.
+
+        // ---------------------------------------------------------
+        // 4. APP LOGIC
         // ---------------------------------------------------------
 
         async function initApp() {
-            // Start the clock
             setInterval(checkTime, 1000);
-            checkTime(); // Initial check
+            checkTime();
 
-            // Listeners
+            // Activity Tracking
+            ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
+                document.addEventListener(evt, trackActivity);
+            });
+
             document.getElementById('enter-btn').addEventListener('click', login);
             document.getElementById('alias-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') login();
@@ -382,33 +408,26 @@
                 if (e.key === 'Enter') sendMessage();
             });
 
-            // Firebase Init
             if (USE_FIREBASE) {
                 try {
-                    // Dynamic Import for Firebase SDKs from CDN
-                    // Dynamic Import for Firebase SDKs from CDN
                     const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
                     const firebaseDatabase = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
 
-                    const { getDatabase, ref, onChildAdded } = firebaseDatabase;
-                    push = firebaseDatabase.push;
-                    serverTimestamp = firebaseDatabase.serverTimestamp;
+                    const { getDatabase, ref, onChildAdded: oca, off: offSubscribe, push: fbPush, serverTimestamp: fbSt } = firebaseDatabase;
+
+                    // Assign to globals
+                    push = fbPush;
+                    serverTimestamp = fbSt;
+                    onChildAdded = oca;
+                    off = offSubscribe;
 
                     const app = initializeApp(firebaseConfig);
                     db = getDatabase(app);
-                    messagesRef = ref(db, 'messages');
 
-                    // Listener for new messages
-                    onChildAdded(messagesRef, (snapshot) => {
-                        const data = snapshot.val();
-                        appendMessage(data.user, data.text, data.timestamp);
-                    });
-
-                    console.log("[SYSTEM] Firebase Connected.");
-
+                    console.log("[SYSTEM] Firebase Ready.");
                 } catch (e) {
                     console.error("Firebase Init Error:", e);
-                    appendMessage("SYSTEM", "CONNECTION ERROR. SWITCHING TO LOCAL MODE.", Date.now());
+                    appendMessage("SYSTEM", "CONNECTION ERROR. SWITCHING TO LOCAL SIMULATION.", Date.now());
                 }
             }
         }
@@ -420,64 +439,92 @@
             if (alias.length > 0) {
                 currentUser = alias;
                 document.getElementById('user-display').innerText = currentUser;
-                showScreen('chat'); // Switch to Chat
+                showScreen('chat');
 
-                // Welcome message
-                setTimeout(() => {
-                    appendMessage("SYSTEM", `WELCOME, ${currentUser}. ENCRYPTION ACTIVE.`, Date.now());
-                }, 500);
+                initChat();
             }
+        }
+
+        function initChat() {
+            // Check if already initialized to avoid double sub
+            if (messagesRef) return;
+
+            elChatFeed.innerHTML = '';
+            appendMessage('SYSTEM', `CONNECTED TO MAIN_FLOOR.exe...`, Date.now());
+
+            if (USE_FIREBASE && db) {
+                subscribeToFirebase();
+            } else {
+                // LOCAL MODE - Load history
+                localMessages.forEach(m => appendMessage(m.user, m.text, m.timestamp));
+            }
+        }
+
+        // Subscribe to MAIN room messages (flattened structure or just 'main')
+        async function subscribeToFirebase() {
+            const firebaseDatabase = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+            const { ref } = firebaseDatabase;
+
+            // WE WILL USE 'main' as the default bucket still to keep compatibility or just 'messages'
+            // Let's stick to rooms/main so we don't lose chat history if the user switches back.
+            messagesRef = ref(db, `rooms/main/messages`);
+
+            // Initial Load & Listen
+            onChildAdded(messagesRef, (snapshot) => {
+                const data = snapshot.val();
+                appendMessage(data.user, data.text, data.timestamp);
+            });
         }
 
         function sendMessage() {
             const text = elMessageInput.value.trim();
             if (!text || !currentUser) return;
 
+
+
             if (USE_FIREBASE && db && push) {
-                // Send to Firebase
+                if (!messagesRef) return;
                 push(messagesRef, {
                     user: currentUser,
                     text: text,
                     timestamp: serverTimestamp()
-                });
-
+                }).catch((e) => appendMessage("SYSTEM", "ERR: " + e.message, Date.now()));
             } else {
                 // LOCAL MODE
+                const msg = { user: currentUser, text: text, timestamp: Date.now() };
+                localMessages.push(msg);
                 appendMessage(currentUser, text, Date.now());
 
-                // Simulation: Random bot reply
-                if (Math.random() > 0.7) {
+                // Sim Bot
+                if (Math.random() > 0.6) {
                     setTimeout(() => {
-                        const replies = [
-                            "I heard that too.",
-                            "The signal is weak tonight.",
-                            "Did you see the new data dump?",
-                            "Keep it down, mods are watching.",
-                            "lol"
-                        ];
-                        const randomReply = replies[Math.floor(Math.random() * replies.length)];
-                        appendMessage("GHOST_User", randomReply, Date.now());
-                    }, 2000);
+                        const botMsg = { user: "GHOST_NET", text: "I see you...", timestamp: Date.now() };
+                        localMessages.push(botMsg);
+                        appendMessage("GHOST_NET", botMsg.text, Date.now());
+                    }, 1500);
                 }
             }
-
             elMessageInput.value = '';
         }
 
+
+
         function appendMessage(user, text, timestamp) {
             const timeStr = new Date(timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' });
-
             const msgDiv = document.createElement('div');
-            msgDiv.className = "mb-2 hover:bg-gray-900 p-1 rounded transition-colors";
+            msgDiv.className = "mb-1 hover:bg-gray-900 p-1 rounded transition-colors flex items-start";
 
             const isMe = (user === currentUser);
             const userColor = isMe ? 'text-neon' : 'text-pink';
-            const userLabel = isMe ? `<span class="${userColor} font-bold">[${user}]</span>` : `<span class="${userColor}">[${user}]</span>`;
+            // System msgs
+            const isSystem = (user === 'SYSTEM');
+            const nameDisplay = isSystem ? `<span class="text-gray-500 font-bold">[SYS]</span>` : `<span class="${userColor} font-bold">[${user}]</span>`;
 
             msgDiv.innerHTML = `
-                <span class="text-gray-500 text-xs mr-2">[${timeStr}]</span>
-                ${userLabel}
-                <span class="${isMe ? 'text-white' : 'text-gray-300'} break-words">${escapeHtml(text)}</span>
+                <span class="text-gray-600 text-[10px] mr-2 mt-1 font-mono">${timeStr}</span>
+                <div class="flex-1">
+                    ${nameDisplay} <span class="${isMe ? 'text-gray-100' : 'text-gray-300'} break-words">${escapeHtml(text)}</span>
+                </div>
             `;
 
             elChatFeed.appendChild(msgDiv);
@@ -486,14 +533,9 @@
 
         function escapeHtml(text) {
             if (!text) return text;
-            return text.replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // Run
         initApp();
 
     </script>
