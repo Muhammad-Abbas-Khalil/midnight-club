@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE MIDNIGHT CLUB</title>
+    <title>TASK FORCE 141 // MIDNIGHT CLUB</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom Config for Tailwind -->
@@ -13,23 +13,35 @@
             theme: {
                 extend: {
                     colors: {
-                        black: '#050505',
-                        neonGreen: '#0f0',
-                        hotPink: '#f0f',
-                        offBlack: '#0a0a0a',
+                        codBlack: '#0a0a0c', // Deep dark gunmetal
+                        codGray: '#16191d',  // Panel background
+                        codTeal: '#4fd1c5',  // Modern Warfare teal/cyan overlay
+                        codGreen: '#10b981', // Success/Online
+                        codRed: '#ef4444',   // Alert/Offline
+                        codAmber: '#f59e0b', // Warning/Processing
+                        codText: '#e2e8f0',  // Primary text
+                        codMuted: '#64748b', // Secondary text
                     },
                     fontFamily: {
-                        mono: ['"Fira Code"', '"Courier New"', 'monospace'],
+                        heading: ['"Oswald"', 'sans-serif'],
+                        mono: ['"Share Tech Mono"', '"Courier New"', 'monospace'],
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
                     },
                     animation: {
-                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'glitch': 'glitch 1s linear infinite',
+                        'scan': 'scan 4s linear infinite',
+                        'ping-slow': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+                        'flash': 'flash 0.5s ease-in-out infinite alternate',
                     },
                     keyframes: {
-                        glitch: {
-                            '2%, 64%': { transform: 'translate(2px,0) skew(0deg)' },
-                            '4%, 60%': { transform: 'translate(-2px,0) skew(0deg)' },
-                            '62%': { transform: 'translate(0,0) skew(5deg)' },
+                        scan: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' },
+                        },
+                        flash: {
+                            '0%': { opacity: '1' },
+                            '100%': { opacity: '0.4' },
                         }
                     }
                 }
@@ -37,74 +49,107 @@
         }
     </script>
     <style>
-        /* CORE AESTHETICS */
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
+        /* CORE AESTHETICS - TACTICAL OVERLAY */
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Share+Tech+Mono&display=swap');
 
         body {
-            background-color: #050505;
-            color: #0f0;
-            font-family: 'Fira Code', 'Courier New', monospace;
+            background-color: #0a0a0c;
+            color: #e2e8f0;
+            font-family: 'Share Tech Mono', monospace;
+            /* Default to mono for that terminal feel */
             overflow: hidden;
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(20, 30, 40, 0.4) 0%, rgba(5, 5, 5, 0.8) 100%),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 100%, 100% 4px;
+            /* Fake interlacing */
         }
 
-        /* CRT EFFECT OVERLAY */
-        .crt-overlay {
+        h1,
+        h2,
+        h3,
+        .font-heading {
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* GRID OVERLAY */
+        .tactical-grid {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%,
-                    rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg,
-                    rgba(255, 0, 0, 0.06),
-                    rgba(0, 255, 0, 0.02),
-                    rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* VIGNETTE & SCANLINE */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: rgba(79, 209, 197, 0.1);
+            opacity: 0.4;
+            animation: scan 6s linear infinite;
             pointer-events: none;
             z-index: 999;
-            animation: crt-flicker 0.15s infinite;
+            box-shadow: 0 0 10px rgba(79, 209, 197, 0.2);
         }
 
-        @keyframes crt-flicker {
-            0% {
-                opacity: 0.95;
-            }
-
-            50% {
-                opacity: 1;
-            }
-
-            100% {
-                opacity: 0.98;
-            }
-        }
-
-        /* CUSTOM UTILITIES */
-        .text-neon {
-            text-shadow: 0 0 5px #0f0, 0 0 10px #0f0, 0 0 20px #0f0;
-        }
-
-        .text-pink {
-            color: #f0f;
-            text-shadow: 0 0 5px #f0f, 0 0 10px #f0f;
-        }
-
-        .border-neon {
-            box-shadow: 0 0 5px #0f0, inset 0 0 5px #0f0;
-        }
-
-        /* SCROLLBAR */
+        /* CUSTOM SCROLLBAR - SLIM & TACTICAL */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #050505;
+            background: #0a0a0c;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #0f0;
-            border: 1px solid #050505;
+            background: #334155;
+            border-radius: 0;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4fd1c5;
+        }
+
+        /* CHAMFERED CORNERS UI */
+        .clip-corner {
+            clip-path: polygon(0 0,
+                    100% 0,
+                    100% calc(100% - 10px),
+                    calc(100% - 10px) 100%,
+                    0 100%);
+        }
+
+        .clip-corner-tl-br {
+            clip-path: polygon(10px 0,
+                    100% 0,
+                    100% calc(100% - 10px),
+                    calc(100% - 10px) 100%,
+                    0 100%,
+                    0 10px);
+        }
+
+        /* BORDER GLOW */
+        .tactical-border {
+            border: 1px solid rgba(79, 209, 197, 0.3);
+            box-shadow: 0 0 10px rgba(79, 209, 197, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .tactical-border:hover {
+            border-color: rgba(79, 209, 197, 0.8);
+            box-shadow: 0 0 15px rgba(79, 209, 197, 0.15);
         }
 
         /* UTILITY CLASSES */
@@ -112,9 +157,19 @@
             display: none !important;
         }
 
-        /* TERMINAL CURSOR */
-        .cursor-blink::after {
-            content: '_';
+        .text-glow {
+            text-shadow: 0 0 8px rgba(79, 209, 197, 0.5);
+        }
+
+        /* BLINKER */
+        .blinking-cursor::after {
+            content: ' ';
+            display: inline-block;
+            width: 0.6em;
+            height: 1em;
+            background-color: #4fd1c5;
+            vertical-align: text-bottom;
+            margin-left: 2px;
             animation: blink 1s step-end infinite;
         }
 
@@ -126,418 +181,539 @@
     </style>
 </head>
 
-<body class="h-screen w-screen flex flex-col items-center justify-center p-4">
+<body class="h-screen w-screen flex flex-col items-center justify-center p-4 relative">
 
-    <!-- CRT OVERLAY -->
-    <div class="crt-overlay"></div>
+    <!-- TACTICAL BACKGROUND ELEMENTS -->
+    <div class="tactical-grid"></div>
+    <div class="scanline"></div>
+    <div
+        class="fixed top-0 left-0 w-full h-full border-[20px] border-transparent border-t-codBlack border-b-codBlack pointer-events-none z-10 opacity-50">
+    </div>
 
-    <!-- MAIN TITLE -->
-    <header class="absolute top-4 left-4 z-50">
-        <h1 class="text-2xl md:text-3xl font-bold tracking-tighter animate-glitch text-neon">
-            THE MIDNIGHT CLUB
-        </h1>
-        <div id="connection-status" class="text-xs text-pink mt-1 opacity-70">
-            [SECURE_CONNECTION_ESTABLISHED]
+    <!-- HEADER / HUD ELEMENTS -->
+    <header class="absolute top-0 left-0 w-full p-6 z-50 flex justify-between items-start pointer-events-none">
+        <div>
+            <h1
+                class="text-3xl md:text-5xl font-bold tracking-tighter text-codText font-heading uppercase drop-shadow-md">
+                TASK FORCE <span class="text-codTeal">141</span>
+            </h1>
+            <div class="flex items-center space-x-2 mt-1">
+                <div class="h-2 w-2 bg-codGreen rounded-full animate-pulse"></div>
+                <div class="text-xs text-codMuted tracking-widest font-mono">
+                    SECURE_NET // <span class="text-codTeal">ONLINE</span>
+                </div>
+            </div>
+        </div>
+        <div class="hidden md:block text-right">
+            <div class="text-xs text-codMuted font-mono">LOCATION: [REDACTED]</div>
+            <div class="text-xs text-codMuted font-mono">OP: MIDNIGHT CLUB</div>
+            <div class="text-xl font-bold text-codTeal font-mono" id="world-clock">00:00:00 ZULU</div>
         </div>
     </header>
 
-    <!-- CONTENT: LOCKED STATE -->
-    <div id="locked-state" class="hidden flex-col items-center justify-center text-center z-10 w-full max-w-2xl">
-        <div class="border border-neon p-8 bg-black bg-opacity-80 w-full">
-            <h2 class="text-xl mb-6 tracking-widest text-pink font-bold">ACCESS DENIED</h2>
-            <div class="text-6xl md:text-8xl font-bold mb-4 font-mono" id="countdown">00:00:00</div>
-            <p class="text-sm md:text-base animate-pulse text-neon mt-4 uppercase tracking-widest">
-                We open when the city sleeps.
-            </p>
-            <div class="mt-8 text-xs text-gray-500 border-t border-gray-800 pt-4">
-                HOURS: 23:00 - 03:00 LOCAL TIME
+    <!-- CONTENT: LOCKED STATE (BRIEFING) -->
+    <div id="locked-state" class="hidden flex-col items-center justify-center text-center z-20 w-full max-w-3xl">
+        <div class="relative bg-codGray/90 border border-codRed/30 p-1 w-full clip-corner">
+            <div class="absolute top-0 left-0 w-full h-1 bg-codRed"></div>
+            <div class="p-8 md:p-12 flex flex-col items-center">
+                <div class="text-codRed text-6xl mb-4 opacity-80">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+                <h2 class="text-3xl md:text-5xl mb-2 tracking-widest text-codRed font-bold font-heading">UNAUTHORIZED
+                    ENTRY</h2>
+                <div class="h-px w-32 bg-codRed/50 mb-6"></div>
+
+                <div class="text-6xl md:text-8xl font-bold mb-4 font-mono text-codText tracking-tighter" id="countdown">
+                    00:00:00</div>
+
+                <p class="text-sm md:text-base text-codMuted mt-4 uppercase tracking-[0.2em] font-mono">
+                    MISSION START TIME: 2300 HOURS
+                </p>
+
+                <div
+                    class="mt-8 grid grid-cols-2 gap-4 text-xs text-codMuted w-full max-w-md border-t border-codGray pt-4">
+                    <div class="text-left">STATUS: <span class="text-codRed">LOCKED</span></div>
+                    <div class="text-right">SECURITY: <span class="text-codAmber">MAXIMUM</span></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- CONTENT: OPEN STATE (LOGIN) -->
-    <div id="login-state" class="hidden flex-col items-center justify-center z-10 w-full max-w-md">
-        <div class="border border-neon p-6 bg-black bg-opacity-90 w-full">
-            <h2 class="text-lg mb-4 text-neon">> AUTHENTICATE_USER</h2>
-            <div class="mb-6">
-                <input type="text" id="alias-input" placeholder="ENTER ALIAS..."
-                    class="w-full bg-black border-b-2 border-neon text-neon focus:outline-none focus:border-pink py-2 font-mono uppercase"
-                    maxlength="15" autocomplete="off">
-            </div>
-            <button id="enter-btn"
-                class="w-full border border-neon text-neon hover:bg-neonGreen hover:text-black py-3 font-bold transition-all duration-200 uppercase tracking-widest">
-                ENTER THE FLOOR
-            </button>
-        </div>
-    </div>
-
-    <!-- CONTENT: OPEN STATE (CHAT FLOOR) -->
-    <div id="chat-state" class="hidden flex-col w-full h-full max-w-4xl pt-20 pb-4 z-10 px-2 md:px-0">
-
-        <!-- MAIN CHAT AREA -->
-        <div class="flex-1 flex flex-col border border-neon bg-black bg-opacity-80 h-full overflow-hidden w-full">
-
-            <!-- CHAT HEADER -->
-            <div class="flex justify-between items-center p-2 border-b border-neon bg-offBlack text-xs md:text-sm">
-                <div>
-                    <span class="text-neon font-bold animate-pulse">THE_NOODLE_SHOP.net</span>
+    <!-- CONTENT: OPEN STATE (LOGIN / AUTHENTICATION) -->
+    <div id="login-state" class="hidden flex-col items-center justify-center z-20 w-full max-w-md">
+        <div class="w-full bg-codGray/95 clip-corner-tl-br border-l-2 border-r-2 border-codTeal p-1">
+            <div class="bg-gradient-to-b from-codGray to-codBlack p-8 relative overflow-hidden">
+                <!-- Decorative BG lines -->
+                <div class="absolute top-0 right-0 p-2 opacity-20">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/US_special_operations_forces_insignia.svg/1200px-US_special_operations_forces_insignia.svg.png"
+                        class="w-32 h-32 grayscale contrast-200" alt="" onerror="this.style.display='none'">
                 </div>
-                <div>
-                    <span class="text-gray-400">USER:</span> <span id="user-display" class="text-pink">GUEST</span>
-                </div>
-                <div class="hidden md:block">
-                    <span class="text-pink">T-MINUS: <span id="self-destruct-timer"
-                            class="font-bold">--:--:--</span></span>
-                </div>
-            </div>
 
-            <!-- CHAT FEED -->
-            <div id="chat-feed"
-                class="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-sm md:text-base scroll-smooth">
-                <div class="opacity-50 italic text-xs">> SYSTEM: Establishing neural link...</div>
-            </div>
+                <div class="relative z-10">
+                    <h2 class="text-xl mb-6 text-codTeal font-heading tracking-wider flex items-center">
+                        <span class="w-2 h-2 bg-codTeal mr-2"></span>
+                        OPERATOR AUTHENTICATION
+                    </h2>
 
-            <!-- INPUT AREA -->
-            <div class="p-2 bg-black border-t border-gray-800">
-                <div class="flex space-x-2">
-                    <input type="text" id="message-input"
-                        class="flex-1 bg-offBlack border border-gray-700 p-3 text-neon focus:outline-none focus:border-neon font-mono placeholder-gray-700"
-                        placeholder="TRANSMIT..." autocomplete="off">
-                    <button id="send-btn"
-                        class="bg-neonGreen text-black px-4 md:px-6 font-bold hover:bg-white transition-colors uppercase text-sm md:text-base">
-                        SEND
+                    <div class="mb-8 space-y-1">
+                        <label class="text-[10px] text-codMuted uppercase tracking-widest">Callsign</label>
+                        <div class="flex items-center border-b border-codTeal/50 bg-codBlack/50 p-2">
+                            <span class="text-codTeal mr-2">></span>
+                            <input type="text" id="alias-input" placeholder="ENTER CALLSIGN..."
+                                class="w-full bg-transparent border-none text-codText focus:outline-none font-mono uppercase tracking-wider placeholder-codMuted/50"
+                                maxlength="15" autocomplete="off">
+                            <div class="w-2 h-4 bg-codTeal animate-pulse"></div>
+                        </div>
+                    </div>
+
+                    <button id="enter-btn"
+                        class="group w-full bg-codTeal/10 hover:bg-codTeal/20 border border-codTeal/50 text-codTeal py-4 font-bold transition-all duration-200 uppercase tracking-[0.15em] clip-corner flex items-center justify-between px-6 hover:shadow-[0_0_15px_rgba(79,209,197,0.3)]">
+                        <span>INITIATE LINK</span>
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 transform group-hover:translate-x-1 transition-transform" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
                     </button>
+
+                    <div class="mt-4 text-center">
+                        <p class="text-[10px] text-codMuted">RESTRICTED ACCESS // LEVEL 4 CLEARANCE ONLY</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- CONTENT: SYSTEM WIPE ANIMATION -->
-    <div id="wipe-state" class="hidden fixed inset-0 bg-black z-[100] flex items-center justify-center flex-col">
-        <h1 class="text-4xl md:text-6xl text-pink font-bold animate-pulse text-center">SYSTEM PURGE_INITIATED</h1>
-        <div class="w-64 h-2 bg-gray-900 mt-8 rounded overflow-hidden">
-            <div class="h-full bg-pink w-0 animate-[width_3s_ease-in-out_forwards]" style="transition: width 3s;"></div>
+    <!-- CONTENT: OPEN STATE (CHAT FLOOR / COMMS) -->
+    <div id="chat-state" class="hidden flex-col w-full h-full max-w-5xl pt-24 pb-4 z-20 px-4 md:px-0">
+
+        <!-- MAIN HUD CONTAINER -->
+        <div class="flex-1 flex flex-col md:flex-row gap-4 h-full overflow-hidden w-full">
+
+            <!-- LEFT PANEL: SQUAD INFO (Desktop Only) -->
+            <div class="hidden md:flex w-64 flex-col bg-codGray/80 border border-codTeal/30 clip-corner">
+                <div class="bg-codTeal/10 p-2 border-b border-codTeal/30">
+                    <h3 class="text-codTeal text-xs font-bold font-heading tracking-widest">SQUAD_STATUS</h3>
+                </div>
+                <div class="p-4 space-y-4 flex-1 overflow-y-auto">
+                    <!-- Fake Squad List -->
+                    <div class="text-[10px] text-codMuted font-mono space-y-2">
+                        <div class="flex justify-between items-center text-codText">
+                            <span>> COMMANDER</span>
+                            <span class="w-2 h-2 rounded-full bg-codGreen"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>> GHOST</span>
+                            <span class="w-2 h-2 rounded-full bg-codGreen opacity-50"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>> SOAP</span>
+                            <span class="w-2 h-2 rounded-full bg-codGreen opacity-50"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>> PRICE</span>
+                            <span class="w-2 h-2 rounded-full bg-codGreen opacity-50"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-2 border-t border-codTeal/30">
+                    <div class="text-[10px] text-codMuted">SIGNAL: <span class="text-codGreen">STRONG</span></div>
+                </div>
+            </div>
+
+            <!-- CENTER PANEL: CHAT FEED -->
+            <div class="flex-1 flex flex-col bg-codBlack/80 border border-codTeal/30 relative">
+                <!-- Corner Accents -->
+                <div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-codTeal"></div>
+                <div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-codTeal"></div>
+                <div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-codTeal"></div>
+                <div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-codTeal"></div>
+
+                <!-- CHAT HEADER -->
+                <div class="flex justify-between items-center p-3 bg-codGray/90 border-b border-codTeal/20">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-codTeal font-bold font-heading tracking-wider">SECURE_CHANNEL_01</span>
+                        <span
+                            class="text-[10px] text-codMuted bg-codBlack px-1 rounded border border-codMuted/30">ENCRYPTED</span>
+                    </div>
+                    <div class="text-[10px] md:text-xs">
+                        <span class="text-codMuted">OPERATOR:</span> <span id="user-display"
+                            class="text-codTeal font-bold">UNKNOWN</span>
+                    </div>
+                </div>
+
+                <!-- CHAT FEED AREA -->
+                <div id="chat-feed"
+                    class="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-sm scroll-smooth scrollbar-thin scrollbar-thumb-codTeal scrollbar-track-codBlack">
+                    <div class="opacity-50 text-xs text-codGreen">> SYSTEM: UPLINK ESTABLISHED. WAITING FOR
+                        TRANSMISSION...</div>
+                </div>
+
+                <!-- INPUT AREA -->
+                <div class="p-3 bg-codGray/90 border-t border-codTeal/20">
+                    <div class="flex space-x-2 items-end">
+                        <div class="flex-1 relative">
+                            <input type="text" id="message-input"
+                                class="w-full bg-codBlack border border-codTeal/30 p-3 text-codText focus:outline-none focus:border-codTeal focus:ring-1 focus:ring-codTeal/50 font-mono placeholder-codMuted/50 text-sm"
+                                placeholder="ENTER TRANSMISSION..." autocomplete="off">
+                            <!-- Tactical Corner on Input -->
+                            <div class="absolute bottom-0 right-0 w-2 h-2 bg-codTeal/50 clip-path-triangle"></div>
+                        </div>
+                        <button id="send-btn"
+                            class="bg-codTeal text-codBlack px-6 py-3 font-bold hover:bg-white transition-colors uppercase text-sm font-heading tracking-wider clip-corner">
+                            SEND
+                        </button>
+                    </div>
+                    <div class="flex justify-between mt-1 text-[10px] text-codMuted">
+                        <span>FREQ: 140.85</span>
+                        <span class="hidden md:inline">T-MINUS: <span id="self-destruct-timer"
+                                class="text-codAmber font-bold">--:--:--</span></span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <p class="mt-4 text-neon font-mono text-xs">ERASING TRACES...</p>
+    </div>
+
+    <!-- CONTENT: SYSTEM WIPE ANIMATION (EMP) -->
+    <div id="wipe-state" class="hidden fixed inset-0 bg-codBlack z-[100] flex items-center justify-center flex-col">
+        <div class="w-full max-w-2xl text-center px-4">
+            <h1 class="text-4xl md:text-7xl text-codRed font-bold animate-pulse font-heading tracking-tighter mb-4">
+                SIGNAL LOST</h1>
+            <div class="w-full h-1 bg-codGray mt-8 relative overflow-hidden">
+                <div class="h-full bg-codRed w-full animate-[width_3s_ease-in-out_reverse_forwards]"
+                    style="width: 100%"></div>
+            </div>
+            <div class="flex justify-between mt-2 text-codRed font-mono text-xs">
+                <span>CONNECTION SEVERED</span>
+                <span>RETRYING...</span>
+            </div>
+        </div>
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
-    <script type="module">
-        // ---------------------------------------------------------
-        // 1. CONFIGURATION & STATE
-        // ---------------------------------------------------------
+    <script>
+            (async function () {
+                // ---------------------------------------------------------
+                // 1. CONFIGURATION & STATE
+                // ---------------------------------------------------------
 
-        const USE_FIREBASE = true;
+                const USE_FIREBASE = true;
 
-        const firebaseConfig = {
-            apiKey: "[GCP_API_KEY]",
-            authDomain: "midnight-club-6b9f4.firebaseapp.com",
-            databaseURL: "https://midnight-club-6b9f4-default-rtdb.firebaseio.com",
-            projectId: "midnight-club-6b9f4",
-            storageBucket: "midnight-club-6b9f4.firebasestorage.app",
-            messagingSenderId: "151877926407",
-            appId: "1:151877926407:web:a12fc3abbefa46551f74a2",
-            measurementId: "G-K3V8SC2JB6"
-        };
+                const firebaseConfig = {
+                    apiKey: "[GCP_API_KEY]",
+                    authDomain: "midnight-club-6b9f4.firebaseapp.com",
+                    databaseURL: "https://midnight-club-6b9f4-default-rtdb.firebaseio.com",
+                    projectId: "midnight-club-6b9f4",
+                    storageBucket: "midnight-club-6b9f4.firebasestorage.app",
+                    messagingSenderId: "151877926407",
+                    appId: "1:151877926407:web:a12fc3abbefa46551f74a2",
+                    measurementId: "G-K3V8SC2JB6"
+                };
 
-        const ROOMS = {
-            'main': { name: 'MAIN_FLOOR', desc: 'General Frequency' },
-            'confession': { name: 'CONFESSION_BOOTH', desc: 'Anonymous Logs' },
-            'philosophy': { name: 'PHILOSOPHY_CNR', desc: 'Deep Thoughts' },
-            'ghosts': { name: 'GHOST_STORIES', desc: 'Urban Legends' },
-            'games': { name: 'ARCADE_ROOM', desc: 'Simulation Deck' }
-        };
-        // --- GLOBAL VARIABLES ---
-        let currentUser = null;
-        let db = null;
-        let messagesRef = null;
-        let push = null;
-        let serverTimestamp = null;
-        let onChildAdded = null;
-        let off = null;
+                // --- GLOBAL VARIABLES ---
+                let currentUser = null;
+                let db = null;
+                let messagesRef = null;
+                let push = null;
+                let serverTimestamp = null;
+                let onChildAdded = null;
+                let off = null;
 
-        // Idle Kick Config
-        let lastActive = Date.now();
-        const IDLE_TIMEOUT = 60 * 1000; // 60 seconds
+                // Idle Kick Config
+                let lastActive = Date.now();
+                const IDLE_TIMEOUT = 60 * 1000; // 60 seconds
 
-        // Local State
-        let localMessages = [];
+                // Local State
+                let localMessages = [];
 
-        // Elements
-        const elLocked = document.getElementById('locked-state');
-        const elLogin = document.getElementById('login-state');
-        const elChat = document.getElementById('chat-state');
-        const elWipe = document.getElementById('wipe-state');
-        const elCountdown = document.getElementById('countdown');
-        const elSelfDestruct = document.getElementById('self-destruct-timer');
-        const elChatFeed = document.getElementById('chat-feed');
-        const elMessageInput = document.getElementById('message-input');
+                // Elements
+                const elLocked = document.getElementById('locked-state');
+                const elLogin = document.getElementById('login-state');
+                const elChat = document.getElementById('chat-state');
+                const elWipe = document.getElementById('wipe-state');
+                const elCountdown = document.getElementById('countdown');
+                const elSelfDestruct = document.getElementById('self-destruct-timer');
+                const elChatFeed = document.getElementById('chat-feed');
+                const elMessageInput = document.getElementById('message-input');
+                const elWorldClock = document.getElementById('world-clock');
 
-        // ---------------------------------------------------------
-        // 2. THE BOUNCER (TIME & IDLE LOGIC)
-        // ---------------------------------------------------------
 
-        function checkTime() {
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
+                // ---------------------------------------------------------
+                // 2. THE BOUNCER (TIME & IDLE LOGIC)
+                // ---------------------------------------------------------
 
-            // CLUB HOURS: 23:00 (11PM) to 03:00 (3AM)
-            // const isClubOpen = (hours >= 23) || (hours < 3);
-            const isClubOpen = true; // DEV MODE: ALWAYS OPEN
+                function checkTime() {
+                    const now = new Date();
+                    const hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const seconds = now.getSeconds();
 
-            // AUTO WIPE CHECK
-            if (hours === 3 && minutes === 1 && seconds < 5) {
-                triggerWipe();
-                return;
-            }
+                    // CLUB HOURS: 23:00 (11PM) to 03:00 (3AM)
+                    // const isClubOpen = (hours >= 23) || (hours < 3);
+                    const isClubOpen = true; // DEV MODE: ALWAYS OPEN
 
-            // IDLE CHECK (Global now since single room)
-            if (currentUser && !elChat.classList.contains('hidden')) {
-                if (Date.now() - lastActive > IDLE_TIMEOUT) {
-                    triggerKick();
-                    return;
-                }
-            }
+                    // UDPATE WORLD CLOCK (ZULU TIME)
+                    if (elWorldClock) {
+                        const zuluParams = { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'UTC' };
+                        elWorldClock.innerText = now.toLocaleTimeString('en-US', zuluParams) + " ZULU";
+                    }
 
-            if (isClubOpen) {
-                if (elWipe.classList.contains('hidden')) {
-                    if (!currentUser) {
-                        showScreen('login');
+                    // AUTO WIPE CHECK
+                    if (hours === 3 && minutes === 1 && seconds < 5) {
+                        triggerWipe();
+                        return;
+                    }
+
+                    // IDLE CHECK (Global now since single room)
+                    if (currentUser && !elChat.classList.contains('hidden')) {
+                        if (Date.now() - lastActive > IDLE_TIMEOUT) {
+                            triggerKick();
+                            return;
+                        }
+                    }
+
+                    if (isClubOpen) {
+                        if (elWipe.classList.contains('hidden')) {
+                            if (!currentUser) {
+                                showScreen('login');
+                            } else {
+                                if (elChat.classList.contains('hidden')) {
+                                    showScreen('chat');
+                                    initChat();
+                                }
+                            }
+                        }
+
+                        // UPDATE SELF-DESTRUCT TIMER
+                        if (elSelfDestruct) {
+                            let target = new Date();
+                            if (hours >= 23) {
+                                target.setDate(target.getDate() + 1);
+                                target.setHours(3, 0, 0, 0);
+                            } else {
+                                target.setHours(3, 0, 0, 0);
+                            }
+                            updateTimerDisplay(elSelfDestruct, target);
+                        }
+
                     } else {
-                        if (elChat.classList.contains('hidden')) {
-                            showScreen('chat');
-                            initChat();
+                        showScreen('locked');
+                        let target = new Date();
+                        target.setHours(23, 0, 0, 0);
+                        updateTimerDisplay(elCountdown, target);
+                    }
+                }
+
+                function trackActivity() {
+                    lastActive = Date.now();
+                }
+
+                function updateTimerDisplay(element, targetDate) {
+                    const now = new Date();
+                    const diff = targetDate - now;
+
+                    if (diff <= 0) {
+                        element.innerText = "00:00:00";
+                        return;
+                    }
+
+                    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diff % (1000 * 60)) / 1000);
+                    element.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                }
+
+                function showScreen(screenName) {
+                    const screens = { locked: elLocked, login: elLogin, chat: elChat, wipe: elWipe };
+                    for (const key in screens) {
+                        if (key === screenName) {
+                            screens[key].classList.remove('hidden');
+                            screens[key].classList.add('flex');
+                        } else {
+                            screens[key].classList.add('hidden');
+                            screens[key].classList.remove('flex');
                         }
                     }
                 }
 
-                // UPDATE SELF-DESTRUCT TIMER
-                let target = new Date();
-                if (hours >= 23) {
-                    target.setDate(target.getDate() + 1);
-                    target.setHours(3, 0, 0, 0);
-                } else {
-                    target.setHours(3, 0, 0, 0);
+                function triggerWipe() {
+                    showScreen('wipe');
+                    currentUser = null;
+                    setTimeout(() => { window.location.reload(); }, 4000);
                 }
-                updateTimerDisplay(elSelfDestruct, target);
 
-            } else {
-                showScreen('locked');
-                let target = new Date();
-                target.setHours(23, 0, 0, 0);
-                updateTimerDisplay(elCountdown, target);
-            }
-        }
-
-        function trackActivity() {
-            lastActive = Date.now();
-        }
-
-        function updateTimerDisplay(element, targetDate) {
-            const now = new Date();
-            const diff = targetDate - now;
-
-            if (diff <= 0) {
-                element.innerText = "00:00:00";
-                return;
-            }
-
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((diff % (1000 * 60)) / 1000);
-            element.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }
-
-        function showScreen(screenName) {
-            const screens = { locked: elLocked, login: elLogin, chat: elChat, wipe: elWipe };
-            for (const key in screens) {
-                if (key === screenName) {
-                    screens[key].classList.remove('hidden');
-                    screens[key].classList.add('flex');
-                } else {
-                    screens[key].classList.add('hidden');
-                    screens[key].classList.remove('flex');
+                function triggerKick() {
+                    showScreen('wipe');
+                    const h1 = elWipe.querySelector('h1');
+                    const p = elWipe.querySelectorAll('span'); // simple selection
+                    if (h1) h1.innerText = "M.I.A.";
+                    // Keep it simple
+                    currentUser = null;
+                    setTimeout(() => { window.location.reload(); }, 3000);
                 }
-            }
-        }
 
-        function triggerWipe() {
-            showScreen('wipe');
-            currentUser = null;
-            setTimeout(() => { window.location.reload(); }, 4000);
-        }
+                // ---------------------------------------------------------
+                // 4. APP LOGIC
+                // ---------------------------------------------------------
 
-        function triggerKick() {
-            showScreen('wipe');
-            const h1 = elWipe.querySelector('h1');
-            const p = elWipe.querySelector('p');
-            if (h1) h1.innerText = "CONNECTION TERMINATED";
-            if (p) p.innerText = "IDLE_TIMEOUT [60s]. REBOOTING...";
-            currentUser = null;
-            setTimeout(() => { window.location.reload(); }, 3000);
-        }
+                async function initApp() {
+                    setInterval(checkTime, 1000);
+                    checkTime();
 
-        // ---------------------------------------------------------
-        // 3. UI RENDERING
-        // ---------------------------------------------------------
+                    // Activity Tracking
+                    ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
+                        document.addEventListener(evt, trackActivity);
+                    });
 
-        // renderRoomList function removed as it's no longer needed.
+                    document.getElementById('enter-btn').addEventListener('click', login);
+                    document.getElementById('alias-input').addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') login();
+                    });
 
-        // ---------------------------------------------------------
-        // 4. APP LOGIC
-        // ---------------------------------------------------------
+                    document.getElementById('send-btn').addEventListener('click', sendMessage);
+                    elMessageInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') sendMessage();
+                    });
 
-        async function initApp() {
-            setInterval(checkTime, 1000);
-            checkTime();
+                    if (USE_FIREBASE) {
+                        try {
+                            const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+                            const firebaseDatabase = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
 
-            // Activity Tracking
-            ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
-                document.addEventListener(evt, trackActivity);
-            });
+                            const { getDatabase, ref, onChildAdded: oca, off: offSubscribe, push: fbPush, serverTimestamp: fbSt } = firebaseDatabase;
 
-            document.getElementById('enter-btn').addEventListener('click', login);
-            document.getElementById('alias-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') login();
-            });
+                            // Assign to globals
+                            push = fbPush;
+                            serverTimestamp = fbSt;
+                            onChildAdded = oca;
+                            off = offSubscribe;
 
-            document.getElementById('send-btn').addEventListener('click', sendMessage);
-            elMessageInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
-            });
+                            const app = initializeApp(firebaseConfig);
+                            db = getDatabase(app);
 
-            if (USE_FIREBASE) {
-                try {
-                    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+                            console.log("[SYSTEM] Firebase Ready.");
+                        } catch (e) {
+                            console.error("Firebase Init Error:", e);
+                            appendMessage("SYSTEM", "CONNECTION ERROR. SWITCHING TO LOCAL SIMULATION.", Date.now());
+                        }
+                    }
+                }
+
+                function login() {
+                    const input = document.getElementById('alias-input');
+                    const alias = input.value.trim().toUpperCase();
+
+                    if (alias.length > 0) {
+                        currentUser = alias;
+                        document.getElementById('user-display').innerText = currentUser;
+                        showScreen('chat');
+
+                        initChat();
+                    }
+                }
+
+                function initChat() {
+                    // Check if already initialized to avoid double sub
+                    if (messagesRef) return;
+
+                    elChatFeed.innerHTML = '';
+                    appendMessage('SYSTEM', `CONNECTED TO SECURE_NET...`, Date.now());
+
+                    if (USE_FIREBASE && db) {
+                        subscribeToFirebase();
+                    } else {
+                        // LOCAL MODE - Load history
+                        localMessages.forEach(m => appendMessage(m.user, m.text, m.timestamp));
+                    }
+                }
+
+                // Subscribe to MAIN room messages (flattened structure or just 'main')
+                async function subscribeToFirebase() {
                     const firebaseDatabase = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+                    const { ref } = firebaseDatabase;
 
-                    const { getDatabase, ref, onChildAdded: oca, off: offSubscribe, push: fbPush, serverTimestamp: fbSt } = firebaseDatabase;
+                    // WE WILL USE 'main' as the default bucket still to keep compatibility or just 'messages'
+                    // Let's stick to rooms/main so we don't lose chat history if the user switches back.
+                    messagesRef = ref(db, `rooms/main/messages`);
 
-                    // Assign to globals
-                    push = fbPush;
-                    serverTimestamp = fbSt;
-                    onChildAdded = oca;
-                    off = offSubscribe;
-
-                    const app = initializeApp(firebaseConfig);
-                    db = getDatabase(app);
-
-                    console.log("[SYSTEM] Firebase Ready.");
-                } catch (e) {
-                    console.error("Firebase Init Error:", e);
-                    appendMessage("SYSTEM", "CONNECTION ERROR. SWITCHING TO LOCAL SIMULATION.", Date.now());
+                    // Initial Load & Listen
+                    onChildAdded(messagesRef, (snapshot) => {
+                        const data = snapshot.val();
+                        appendMessage(data.user, data.text, data.timestamp);
+                    });
                 }
-            }
-        }
 
-        function login() {
-            const input = document.getElementById('alias-input');
-            const alias = input.value.trim().toUpperCase();
+                function sendMessage() {
+                    const text = elMessageInput.value.trim();
+                    if (!text || !currentUser) return;
 
-            if (alias.length > 0) {
-                currentUser = alias;
-                document.getElementById('user-display').innerText = currentUser;
-                showScreen('chat');
+                    if (USE_FIREBASE && db && push) {
+                        if (!messagesRef) return;
+                        push(messagesRef, {
+                            user: currentUser,
+                            text: text,
+                            timestamp: serverTimestamp()
+                        }).catch((e) => appendMessage("SYSTEM", "ERR: " + e.message, Date.now()));
+                    } else {
+                        // LOCAL MODE
+                        const msg = { user: currentUser, text: text, timestamp: Date.now() };
+                        localMessages.push(msg);
+                        appendMessage(currentUser, text, Date.now());
 
-                initChat();
-            }
-        }
-
-        function initChat() {
-            // Check if already initialized to avoid double sub
-            if (messagesRef) return;
-
-            elChatFeed.innerHTML = '';
-            appendMessage('SYSTEM', `CONNECTED TO MAIN_FLOOR.exe...`, Date.now());
-
-            if (USE_FIREBASE && db) {
-                subscribeToFirebase();
-            } else {
-                // LOCAL MODE - Load history
-                localMessages.forEach(m => appendMessage(m.user, m.text, m.timestamp));
-            }
-        }
-
-        // Subscribe to MAIN room messages (flattened structure or just 'main')
-        async function subscribeToFirebase() {
-            const firebaseDatabase = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
-            const { ref } = firebaseDatabase;
-
-            // WE WILL USE 'main' as the default bucket still to keep compatibility or just 'messages'
-            // Let's stick to rooms/main so we don't lose chat history if the user switches back.
-            messagesRef = ref(db, `rooms/main/messages`);
-
-            // Initial Load & Listen
-            onChildAdded(messagesRef, (snapshot) => {
-                const data = snapshot.val();
-                appendMessage(data.user, data.text, data.timestamp);
-            });
-        }
-
-        function sendMessage() {
-            const text = elMessageInput.value.trim();
-            if (!text || !currentUser) return;
-
-
-
-            if (USE_FIREBASE && db && push) {
-                if (!messagesRef) return;
-                push(messagesRef, {
-                    user: currentUser,
-                    text: text,
-                    timestamp: serverTimestamp()
-                }).catch((e) => appendMessage("SYSTEM", "ERR: " + e.message, Date.now()));
-            } else {
-                // LOCAL MODE
-                const msg = { user: currentUser, text: text, timestamp: Date.now() };
-                localMessages.push(msg);
-                appendMessage(currentUser, text, Date.now());
-
-                // Sim Bot
-                if (Math.random() > 0.6) {
-                    setTimeout(() => {
-                        const botMsg = { user: "GHOST_NET", text: "I see you...", timestamp: Date.now() };
-                        localMessages.push(botMsg);
-                        appendMessage("GHOST_NET", botMsg.text, Date.now());
-                    }, 1500);
+                        // Sim Bot
+                        if (Math.random() > 0.6) {
+                            setTimeout(() => {
+                                const botMsg = { user: "GHOST", text: "Radio check. Over.", timestamp: Date.now() };
+                                localMessages.push(botMsg);
+                                appendMessage("GHOST", botMsg.text, Date.now());
+                            }, 1500);
+                        }
+                    }
+                    elMessageInput.value = '';
                 }
-            }
-            elMessageInput.value = '';
-        }
 
+                function appendMessage(user, text, timestamp) {
+                    const timeStr = new Date(timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' });
 
+                    // Container for message
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = "mb-1 p-2 rounded border-l-2 border-transparent hover:border-codTeal/50 hover:bg-codGray/50 transition-colors flex items-start gap-3 group";
 
-        function appendMessage(user, text, timestamp) {
-            const timeStr = new Date(timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' });
-            const msgDiv = document.createElement('div');
-            msgDiv.className = "mb-1 hover:bg-gray-900 p-1 rounded transition-colors flex items-start";
+                    const isMe = (user === currentUser);
 
-            const isMe = (user === currentUser);
-            const userColor = isMe ? 'text-neon' : 'text-pink';
-            // System msgs
-            const isSystem = (user === 'SYSTEM');
-            const nameDisplay = isSystem ? `<span class="text-gray-500 font-bold">[SYS]</span>` : `<span class="${userColor} font-bold">[${user}]</span>`;
+                    // User Styling
+                    let userClass = isMe ? 'text-codTeal' : 'text-codGreen';
+                    if (user === 'SYSTEM' || user === 'GHOST_NET') userClass = 'text-codAmber';
 
-            msgDiv.innerHTML = `
-                <span class="text-gray-600 text-[10px] mr-2 mt-1 font-mono">${timeStr}</span>
+                    // Name Display
+                    const nameDisplay = `<span class="${userClass} font-bold font-heading tracking-wider text-xs md:text-sm">[${user}]</span>`;
+
+                    msgDiv.innerHTML = `
+                <div class="text-codMuted text-[10px] pt-1 font-mono opacity-60">${timeStr}</div>
                 <div class="flex-1">
-                    ${nameDisplay} <span class="${isMe ? 'text-gray-100' : 'text-gray-300'} break-words">${escapeHtml(text)}</span>
+                    <div class="flex items-baseline gap-2">
+                        ${nameDisplay}
+                    </div>
+                    <div class="text-codText text-sm opacity-90 break-words font-sans">${escapeHtml(text)}</div>
                 </div>
             `;
 
-            elChatFeed.appendChild(msgDiv);
-            elChatFeed.scrollTop = elChatFeed.scrollHeight;
-        }
+                    elChatFeed.appendChild(msgDiv);
+                    elChatFeed.scrollTop = elChatFeed.scrollHeight;
+                }
 
-        function escapeHtml(text) {
-            if (!text) return text;
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
+                function escapeHtml(text) {
+                    if (!text) return text;
+                    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+                }
 
-        initApp();
+                initApp();
 
+            })();
     </script>
 </body>
 
