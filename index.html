@@ -453,8 +453,7 @@
                     const seconds = now.getSeconds();
 
                     // CLUB HOURS: 23:00 (11PM) to 03:00 (3AM)
-                    // const isClubOpen = (hours >= 23) || (hours < 3);
-                    const isClubOpen = true; // DEV MODE: ALWAYS OPEN
+                    const isClubOpen = (hours >= 23) || (hours < 3);
 
                     // UDPATE WORLD CLOCK (ZULU TIME)
                     if (elWorldClock) {
